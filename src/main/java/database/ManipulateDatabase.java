@@ -1,9 +1,6 @@
 package database;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 
 public class ManipulateDatabase {
     public static void main(String[] args) throws SQLException, ClassNotFoundException {
@@ -31,6 +28,38 @@ public class ManipulateDatabase {
         Statement stmt = conn.createStatement();
         stmt.execute(sql);
         conn.setAutoCommit(false);
+        try {
+            String addUser1 = "insert into registration (id,first, last, age) values ('1','Jake','Miller','27')";
+            String addUser2 = "insert into registration (id, first, last, age) values ('2','Elizabeth','Miller','25')";
+            PreparedStatement addUserStatement1 = conn.prepareStatement(addUser1);
+            PreparedStatement addUserStatement2 = conn.prepareStatement(addUser2);
+            addUserStatement1.executeUpdate();
+            addUserStatement2.executeUpdate();
+
+            //Jake and Elizabeth also want to add their kid Mikey to the account.
+            //But if his information is input incorrectly,
+            //then no one's information is processed:
+
+            //String addUser3 = "insert into registration (first, last, age) values ('3','Mikey', 'Miller', 'TwentyFiver')";
+            //PreparedStatement addUserStatement3 = conn.prepareStatement(addUser3);
+            //addUserStatement3.executeUpdate();
+            conn.commit();
+        } catch(SQLException e) {
+            System.out.println("The error was the following:" + e);
+            conn.rollback();
+            System.out.println("No accounts have been made. Transaction has been rolled back! The series of statements do not satisfy order of work.");
+        }
+        PreparedStatement dbContents = conn.prepareStatement(
+                "SELECT * FROM registration");
+        ResultSet rs = dbContents.executeQuery();
+        while (rs.next()){
+            System.out.println("ID: " + rs.getInt("id") +
+                    "; First: " + rs.getString("first") +
+                    "; Last: " + rs.getString("last") +
+                    "; Age: " + rs.getInt("age"));
+        }
+
+
     }
 
     public static void clearH2Database(Connection con) throws SQLException {
